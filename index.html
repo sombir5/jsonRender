@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <select name="" id="order">
+      <option value="asc">ASC</option>
+      <option value="desc">DESC</option>
+    </select>
+    <select name="" id="sort">
+      <option value="id">ID</option>
+      <option value="first_name">Name</option>
+    </select>
+    <select name="" id="filter">
+      <option value="">GENDER</option>
+      <option value="gender=Female">FEMALE</option>
+      <option value="gender=Male">MALE</option>
+    </select>
+    <div id="container"></div>
+    <button id="minus">-</button>
+    <button id="pageNo">1</button>
+    <button id="plus">+</button>
+
+    <form action="" id="form">
+      <input type="text" placeholder="Name" id="fname" />
+      <input type="text" placeholder="last name" id="lname" />
+      <input type="number" placeholder="ID" id="id" />
+      <input type="submit" value="submit" id="submit" />
+    </form>
+  </body>
+</html>
+<script>
+  let output = document.getElementById("pageNo");
+  // let page = 1;
+   var result=1;
+  let limit = 10;
+  let order = "asc";
+  let sort = "id";
+  let filter="";
+
+   getData(result, limit, sort, order,filter);
+  // ------------------sort------------------------------------------------------
+  let sortBy = document.getElementById("sort");
+  sortBy.addEventListener("change", function () {
+    sort = sortBy.value;
+    console.log(sort)
+    getData(result, limit, sort, order,filter);
+  });
+
+  // -----------------------------------------------------------
+  let orderBy = document.getElementById("order");
+  orderBy.addEventListener("change", function () {
+   order = orderBy.value;
+    console.log(order)
+    getData(result, limit, sort, order,filter);
+  });
+
+  //  --------------------------------------------------------------------------
+  // function filterAllData(data) {
+  //   let value = document.getElementById("filter").value;
+  //   let arr = data.filter((elem) => elem.gender === value);
+  //   console.log(arr);
+  //   displayData(arr);
+    
+  // }
+
+   let filterBy = document.getElementById("filter");
+  filterBy.addEventListener("change", function () {
+   filter = filterBy.value;
+    console.log(filter)
+    getData(result, limit, sort, order,filter);
+  });
+  // =---------------------=-----------------------------
+ 
+  let add = document.getElementById("plus");
+  add.addEventListener("click", function () {
+    // let output = document.getElementById("pageNo");
+     result = Number(output.innerText) + 1;
+    output.innerText = result;
+    getData(result,limit,sort,order,filter);
+  });
+
+  let sub = document.getElementById("minus");
+  sub.addEventListener("click", function () {
+    // let output = document.getElementById("pageNo");
+    result = Number(output.innerText) - 1;
+    output.innerText = result;
+    getData(result,limit,sort,order,filter);
+  });
+
+ 
+
+  async function getData(page, limit, sort, order,filter) {
+    console.log(page, limit, sort, order,filter);
+    try {
+      let res = await fetch(
+        `http://localhost:3000/users?_page=${page}&_limit=${limit}&_sort=${sort}&_order=${order}&${filter}`
+      );
+      let data = await res.json();
+      console.log(data);
+      // let filterData = document.getElementById("filter");
+      // filterData.addEventListener("change", function () {
+      //   filterAllData(data);
+      // });
+      displayData(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function displayData(data) {
+    console.log(data);
+    let container = document.getElementById("container");
+    document.getElementById("container").innerHTML = "";
+    data.map((elem, i) => {
+      let div = document.createElement("div");
+      div.style.display = "flex";
+      div.style.gap = "0.8rem";
+      let name = document.createElement("p");
+      name.innerText = elem.first_name;
+      let lname = document.createElement("p");
+      lname.innerText = elem.last_name;
+      let id = document.createElement("p");
+      id.innerText = elem.id;
+      let gender = document.createElement("p");
+      gender.innerText = elem.gender;
+      let email = document.createElement("p");
+      email.innerText = elem.email;
+
+      let button = document.createElement("button");
+      button.innerText = "DELETE";
+      button.addEventListener("click", () => {
+        deleteData(elem.id, i);
+      });
+      let patchbutton = document.createElement("button");
+      patchbutton.innerText = "Patch";
+      patchbutton.addEventListener("click", () => {
+        patchData(elem.id, i);
+      });
+
+      div.append(id, name, lname, email, gender, button, patchbutton);
+      container.append(div);
+    });
+  }
+
+  let form = document.getElementById("form");
+  form.addEventListener("submit", postData);
+
+  async function postData() {
+    let res = await fetch("http://localhost:3000/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        first_name: document.getElementById("fname").value,
+        last_name: document.getElementById("lname").value,
+        id: +document.getElementById("id").value,
+      }),
+    });
+  }
+
+  async function deleteData(id) {
+    try {
+      let res = await fetch(`http://localhost:3000/users/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      // console.log(res)
+      //  displayData(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async function patchData(id) {
+    try {
+      let res = await fetch(`http://localhost:3000/users/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          first_name: document.getElementById("fname").value,
+          last_name: document.getElementById("lname").value,
+          id: +document.getElementById("id").value,
+        }),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+</script>
